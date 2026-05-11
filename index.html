@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TG-CCF Pediatric eGFR Calculator</title>
+<link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+<main class="page-shell">
+<header class="site-header">
+<div>
+<p class="eyebrow">Prototype web calculator</p>
+<h1>TG-CCF Pediatric eGFR Calculator</h1>
+<p class="hero-text">
+          A browser-based tool for pediatric eGFR estimation with optional
+          transportability-guided center intercept calibration.
+        </p>
+</div>
+<div class="privacy-badge">
+<span>Data handling</span>
+<strong>Local browser calculation only</strong>
+</div>
+</header>
+<section class="top-rule"></section>
+<section class="intro-card">
+<div aria-label="Calculator sections" class="tab-row">
+<button class="tab-button active" type="button">About TG-CCF</button>
+<a class="tab-link" href="#calculator">Calculator</a>
+</div>
+<div class="intro-grid">
+<div>
+<h2>About this calculator</h2>
+<p>
+            The TG-CCF Pediatric eGFR Calculator estimates pediatric eGFR from age,
+            height, and serum creatinine. When local measured GFR calibration samples
+            are available, the tool can apply center-specific intercept calibration.
+          </p>
+<p>
+            The model was developed using data from five Chinese hospitals. The overall
+            median measured GFR was 110.2 mL/min/1.73 m², indicating that the
+            development population had largely preserved kidney function. Results
+            should therefore be interpreted cautiously in populations with severe
+            kidney impairment or clinical profiles outside the model development
+            range.
+          </p>
+</div>
+<div class="eligibility-box">
+<h3>Patient eligibility</h3>
+<ul>
+<li>Children and adolescents aged 0–18 years.</li>
+<li>Height must be 63–189 cm.</li>
+<li>Serum creatinine must be 9–273.1 μmol/L, or 0.10–3.09 mg/dL.</li>
+<li>Values outside these ranges are unavailable in this prototype.</li>
+</ul>
+<p class="small-note">
+            Ages below 0.33 years are allowed by the public age range but fall below
+            the lower spline boundary used by the model and will be flagged.
+          </p>
+</div>
+</div>
+</section>
+<section class="notice-card">
+<strong>Restricted research prototype.</strong>
+      This prototype is intended for use by clinicians or researchers for research
+      display and external validation support. Patients or caregivers should not
+      upload patient-level data by themselves. It should not replace clinical judgment
+      or be used as a standalone medical decision-making tool. All calculations are
+      performed locally in the browser; no patient-level data are uploaded or stored
+      by this static webpage.
+    </section>
+<section class="calculator-grid" id="calculator"><section class="card patient-panel">
+<div class="card-header">
+<h2>1. Patient information</h2>
+<p>Enter a single pediatric patient profile within the eligible input ranges.</p>
+</div>
+<div class="form-grid">
+<label>
+<span>Age</span>
+<div class="input-with-unit">
+<input id="ageInput" max="18" min="0" placeholder="e.g., 8.5" step="0.01" type="number"/>
+<em>years</em>
+</div>
+</label>
+<label>
+<span>Height</span>
+<div class="input-with-unit">
+<input id="heightInput" max="189" min="63" placeholder="e.g., 125" step="0.1" type="number"/>
+<em>cm</em>
+</div>
+</label>
+<label>
+<span>Serum creatinine</span>
+<div class="input-with-select">
+<input id="scrInput" min="0.01" placeholder="e.g., 35" step="0.01" type="number"/>
+<select aria-label="Serum creatinine unit" id="scrUnitInput">
+<option selected="" value="umol">μmol/L</option>
+<option value="mgdl">mg/dL</option>
+</select>
+</div>
+<p class="field-hint" id="scrRangeHint">Eligible range: 9–273.1 μmol/L.</p>
+</label>
+</div>
+<button class="primary-button" id="calculateButton">Calculate base eGFR</button>
+<div class="warning-box hidden" id="inputWarning"></div>
+</section><div class="right-stack result-stack"><section class="result-card main-result base-result-panel">
+<p class="result-label">Base eGFR</p>
+<div class="result-value" id="baseEgfrValue">--</div>
+<p class="result-unit">mL/min/1.73 m²</p>
+<p class="result-note" id="baseEgfrNote">Enter patient information to calculate.</p>
+</section><section class="result-card calibrated-result-panel">
+<p class="result-label">Center-calibrated eGFR</p>
+<div class="result-value" id="calibratedEgfrValue">--</div>
+<p class="result-unit">mL/min/1.73 m²</p>
+<p class="result-note" id="calibratedEgfrNote">Upload at least 10 valid local mGFR samples to enable center calibration.</p>
+</section></div><section class="card calibration-panel">
+<div class="card-header">
+<h2>2. Optional local calibration</h2>
+<p>
+              Upload a CSV file containing local calibration samples with measured GFR.
+              Required CSV columns are age, height, Scr, and mGFR.
+            </p>
+</div>
+<div class="calibration-controls">
+<label>
+<span>CSV serum creatinine unit</span>
+<select class="full-select" id="csvScrUnit">
+<option selected="" value="umol">CSV Scr is μmol/L</option>
+<option value="mgdl">CSV Scr is mg/dL</option>
+</select>
+</label>
+</div>
+<div class="upload-box">
+<input accept=".csv,text/csv" id="csvInput" type="file"/>
+<a class="secondary-link" download="" href="example_calibration.csv">Download CSV template</a>
+</div>
+<div class="rule-box">
+<strong>Calibration rule.</strong> Clinicians may apply calibration according to
+            the recommendation shown in the Recommendation panel. Researchers with an
+            independent local validation set should use the supplementary article code
+            to evaluate ΔRMSE, ΔP30, and ΔP10 before routine implementation.
+          </div>
+<div class="helper-text">
+            This public prototype applies calibration when at least 10 valid local samples are provided:
+            n = 10–19 uses empirical-Bayes intercept shrinkage; n ≥ 20 uses ordinary intercept-only calibration.
+          </div>
+<div class="status-text" id="csvStatus">No local calibration file loaded.</div>
+<div class="excluded-box hidden" id="excludedRowsBox"></div>
+<div class="table-container hidden" id="csvPreview"></div>
+</section><div class="right-stack summary-stack"><section class="card compact-card summary-panel">
+<h2>Calibration summary</h2>
+<dl class="summary-list">
+<div>
+<dt>Uploaded rows</dt>
+<dd id="uploadedRowsValue">--</dd>
+</div>
+<div>
+<dt>Valid rows</dt>
+<dd id="validRowsValue">--</dd>
+</div>
+<div>
+<dt>Excluded rows</dt>
+<dd id="excludedRowsValue">--</dd>
+</div>
+<div>
+<dt>Naive ŵ</dt>
+<dd id="wNaiveValue">--</dd>
+</div>
+<div>
+<dt>Used ŵ</dt>
+<dd id="wUsedValue">--</dd>
+</div>
+<div>
+<dt>Calibration factor</dt>
+<dd id="calibrationFactorValue">--</dd>
+</div>
+<div>
+<dt>Route</dt>
+<dd id="calibrationRouteValue">--</dd>
+</div>
+</dl>
+</section><section class="recommendation-card recommendation-panel" id="recommendationCard">
+<p class="recommendation-label">Recommendation</p>
+<h2 id="recommendationTitle">Not available</h2>
+<p id="recommendationText">
+            A recommendation requires at least 10 valid local mGFR calibration samples.
+          </p>
+</section></div><section class="card batch-panel">
+<div class="card-header">
+<h2>3. Batch base eGFR calculation</h2>
+<p>
+              Upload a CSV file to calculate base eGFR for multiple children. Required CSV
+              columns are age, height, and Scr. An optional id column will be retained in
+              the downloaded result file.
+            </p>
+</div>
+<div class="calibration-controls">
+<label>
+<span>Batch CSV serum creatinine unit</span>
+<select class="full-select" id="batchScrUnit">
+<option selected="" value="umol">CSV Scr is μmol/L</option>
+<option value="mgdl">CSV Scr is mg/dL</option>
+</select>
+</label>
+</div>
+<div class="upload-box">
+<input accept=".csv,text/csv" id="batchCsvInput" type="file"/>
+<a class="secondary-link" download="" href="example_batch_base_egfr.csv">Download batch CSV template</a>
+<button class="secondary-button hidden" id="downloadBatchResults" type="button">Download calculated results</button>
+</div>
+<div class="helper-text">
+            This module calculates the uncalibrated base eGFR only. Center-calibrated
+            eGFR requires local mGFR calibration samples in the optional calibration module above.
+          </div>
+<div class="status-text" id="batchStatus">No batch file loaded.</div>
+<div class="excluded-box hidden" id="batchExcludedRowsBox"></div>
+<div class="table-container hidden" id="batchPreview"></div>
+</section></section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
